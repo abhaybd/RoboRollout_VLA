@@ -23,10 +23,6 @@ WRIST_CAMERA = "wrist_camera"
 # DROID's limit on joint motion per step, in radians. Joint velocity actions are joint deltas normalized by this.
 MAX_JOINT_DELTA = 0.2
 
-# MolmoSpaces represents the Franka gripper as two finger joint positions in [0, MOLMOSPACES_GRIPPER_CLOSED],
-# where 0 is open.
-MOLMOSPACES_GRIPPER_CLOSED = 0.824033
-
 
 def joint_velocity_to_position(qpos: np.ndarray, velocity: np.ndarray, max_joint_delta: float = MAX_JOINT_DELTA) -> np.ndarray:
     """
@@ -36,11 +32,6 @@ def joint_velocity_to_position(qpos: np.ndarray, velocity: np.ndarray, max_joint
     velocity = np.asarray(velocity)
     velocity = velocity / max(1.0, np.abs(velocity).max())
     return np.asarray(qpos) + velocity * max_joint_delta
-
-
-def to_molmospaces_gripper(gripper: np.ndarray) -> np.ndarray:
-    """Convert a RoboRollout gripper position to the MolmoSpaces gripper qpos."""
-    return np.full(2, np.asarray(gripper).item() * MOLMOSPACES_GRIPPER_CLOSED)
 
 
 def make_dummy_obs(cameras: Iterable[str], task: str = "pick up the object") -> Dict[str, Any]:

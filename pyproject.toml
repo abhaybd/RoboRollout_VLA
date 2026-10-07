@@ -9,7 +9,7 @@ authors = [
 requires-python = ">=3.11"
 dependencies = [
     "numpy",
-    "robo-rollout @ git+https://github.com/abhaybd/RoboRollout.git@cleanup",
+    "robo-rollout @ git+https://github.com/abhaybd/RoboRollout.git@c0f6123dfc4bf37410b444b42bb1f989bc64f4a8",
 ]
 
 # Each extra pulls in one policy implementation. They have incompatible pins (python, jax, numpy, transformers, openpi),

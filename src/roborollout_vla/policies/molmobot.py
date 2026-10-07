@@ -12,6 +12,7 @@ import numpy as np
 from robo_rollout.policy.policy_server import InferencePolicy
 
 from roborollout_vla.checkpoints import resolve_checkpoint
+from roborollout_vla.policies.molmospaces import to_molmospaces_gripper
 from roborollout_vla.robots import droid
 from roborollout_vla.server import make_parser, serve, warmup
 
@@ -45,7 +46,7 @@ class MolmoBotPolicy(InferencePolicy):
             "task": obs["task"],
             "qpos": {
                 "arm": np.asarray(obs["qpos"]["arm"]),
-                "gripper": droid.to_molmospaces_gripper(obs["qpos"]["gripper"]),
+                "gripper": to_molmospaces_gripper(obs["qpos"]["gripper"]),
             },
             MOLMOBOT_EXO_CAMERA: obs[self.exo_camera],
             MOLMOBOT_WRIST_CAMERA: obs[self.wrist_camera],

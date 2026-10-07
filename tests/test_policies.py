@@ -12,6 +12,7 @@ import pytest
 
 from robo_rollout.policy.policy_client import PolicyClient
 
+from roborollout_vla.policies import molmospaces
 from roborollout_vla.policies.molmobot import MolmoBotPolicy
 from roborollout_vla.policies.molmobot_pi0 import MolmoBotPi0Policy
 from roborollout_vla.policies.openpi import JOINT_POSITION, JOINT_VELOCITY, OpenPIPolicy
@@ -62,8 +63,8 @@ def test_joint_velocity_to_position_rescales_large_velocities():
 
 
 def test_to_molmospaces_gripper():
-    np.testing.assert_allclose(droid.to_molmospaces_gripper(np.array([1.0])), np.full(2, droid.MOLMOSPACES_GRIPPER_CLOSED))
-    np.testing.assert_allclose(droid.to_molmospaces_gripper(np.array([0.0])), np.zeros(2))
+    np.testing.assert_allclose(molmospaces.to_molmospaces_gripper(np.array([1.0])), np.full(2, molmospaces.GRIPPER_CLOSED))
+    np.testing.assert_allclose(molmospaces.to_molmospaces_gripper(np.array([0.0])), np.zeros(2))
 
 
 def test_chunks_are_executed_for_open_loop_horizon():
@@ -128,7 +129,7 @@ def test_molmobot_pi0_inputs_and_actions():
     (inputs,) = fake.inputs
     assert inputs["observation/exterior_image_1_left"].shape == (224, 224, 3)
     assert inputs["observation/wrist_image_left"].shape == (224, 224, 3)
-    np.testing.assert_allclose(inputs["observation/gripper_position"], np.full(2, droid.MOLMOSPACES_GRIPPER_CLOSED))
+    np.testing.assert_allclose(inputs["observation/gripper_position"], np.full(2, molmospaces.GRIPPER_CLOSED))
     # velocities are rescaled rather than clipped, and the gripper is clipped but not binarized
     np.testing.assert_allclose(action["arm"], np.array([1.0, -0.5, 0, 0, 0, 0, 0]) * droid.MAX_JOINT_DELTA)
     np.testing.assert_array_equal(action["gripper"], [1.0])
@@ -143,7 +144,7 @@ def test_molmobot_inputs_and_actions():
     (inputs,) = fake.inputs
     assert inputs["exo_camera_1"] is obs["exo"]
     assert inputs["wrist_camera"] is obs["wrist"]
-    np.testing.assert_allclose(inputs["qpos"]["gripper"], np.full(2, 0.5 * droid.MOLMOSPACES_GRIPPER_CLOSED))
+    np.testing.assert_allclose(inputs["qpos"]["gripper"], np.full(2, 0.5 * molmospaces.GRIPPER_CLOSED))
     np.testing.assert_array_equal(action["arm"], np.arange(7))
     np.testing.assert_array_equal(action["gripper"], [1.0])
 

@@ -8750,7 +8750,7 @@ wheels = [
 [[package]]
 name = "robo-rollout"
 version = "0.1.0"
-source = { git = "https://github.com/abhaybd/RoboRollout.git?rev=cleanup#c0f6123dfc4bf37410b444b42bb1f989bc64f4a8" }
+source = { git = "https://github.com/abhaybd/RoboRollout.git?rev=c0f6123dfc4bf37410b444b42bb1f989bc64f4a8#c0f6123dfc4bf37410b444b42bb1f989bc64f4a8" }
 dependencies = [
     { name = "hydra-core" },
     { name = "msgpack" },
@@ -8804,7 +8804,7 @@ requires-dist = [
     { name = "molmobot-pi0", marker = "extra == 'molmobot-pi0'", git = "https://github.com/allenai/MolmoBot.git?subdirectory=MolmoBot-Pi0&rev=33c0ca77bf6062a23d60ffd4a6859334c4a46d30" },
     { name = "numpy" },
     { name = "openpi", marker = "extra == 'openpi'", git = "https://github.com/Physical-Intelligence/openpi.git?rev=215abfb217dbac7d5f1273282331b9b1866c0479" },
-    { name = "robo-rollout", git = "https://github.com/abhaybd/RoboRollout.git?rev=cleanup" },
+    { name = "robo-rollout", git = "https://github.com/abhaybd/RoboRollout.git?rev=c0f6123dfc4bf37410b444b42bb1f989bc64f4a8" },
     { name = "torch", marker = "python_full_version >= '3.12' and extra == 'lerobot'", specifier = ">=2.8" },
 ]
 provides-extras = ["openpi", "molmobot", "molmobot-pi0", "lerobot"]

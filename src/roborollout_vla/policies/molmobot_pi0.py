@@ -18,6 +18,7 @@ from robo_rollout.utils.image import resize_with_crop, resize_with_pad
 
 from roborollout_vla.checkpoints import resolve_checkpoint
 from roborollout_vla.policies.chunking import ChunkedPolicy
+from roborollout_vla.policies.molmospaces import to_molmospaces_gripper
 from roborollout_vla.robots import droid
 from roborollout_vla.server import make_parser, serve, warmup
 
@@ -61,7 +62,7 @@ class MolmoBotPi0Policy(ChunkedPolicy):
             "observation/wrist_image_left": self._preprocess_image(obs[self.wrist_camera]),
             "observation/joint_position": np.asarray(obs["qpos"]["arm"]),
             # the policy's input transforms expect the MolmoSpaces gripper representation
-            "observation/gripper_position": droid.to_molmospaces_gripper(obs["qpos"]["gripper"]),
+            "observation/gripper_position": to_molmospaces_gripper(obs["qpos"]["gripper"]),
             "prompt": obs["task"],
         })["actions"]
 
