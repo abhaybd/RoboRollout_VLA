@@ -11,8 +11,8 @@ import numpy as np
 
 from robo_rollout.policy.policy_server import InferencePolicy
 
-from roborollout_vla import droid
 from roborollout_vla.checkpoints import resolve_checkpoint
+from roborollout_vla.robots import droid
 from roborollout_vla.server import make_parser, serve, warmup
 
 # camera names expected by MolmoBot's RealRobotVLAPolicyConfig

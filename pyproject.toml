@@ -32,10 +32,10 @@ lerobot = [
 ]
 
 [project.scripts]
-serve-openpi = "roborollout_vla.openpi:main"
-serve-molmobot = "roborollout_vla.molmobot:main"
-serve-molmobot-pi0 = "roborollout_vla.molmobot_pi0:main"
-serve-lerobot = "roborollout_vla.lerobot:main"
+serve-openpi = "roborollout_vla.policies.openpi:main"
+serve-molmobot = "roborollout_vla.policies.molmobot:main"
+serve-molmobot-pi0 = "roborollout_vla.policies.molmobot_pi0:main"
+serve-lerobot = "roborollout_vla.policies.lerobot:main"
 patch-transformers-for-openpi = "roborollout_vla.patch_transformers:main"
 
 [dependency-groups]

@@ -9,14 +9,14 @@ import pytest
 
 torch = pytest.importorskip("torch")
 
-from roborollout_vla import droid  # noqa: E402
-from roborollout_vla.lerobot import (  # noqa: E402
+from roborollout_vla.policies.lerobot import (  # noqa: E402
     JOINT_CHUNK_DELTA,
     JOINT_POSITION,
     JOINT_VELOCITY,
     LeRobotPolicy,
     resolve_image_feature,
 )
+from roborollout_vla.robots import droid  # noqa: E402
 
 EXO_FEATURE = "observation.images.exterior"
 WRIST_FEATURE = "observation.images.wrist"

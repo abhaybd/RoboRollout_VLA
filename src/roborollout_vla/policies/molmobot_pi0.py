@@ -16,9 +16,9 @@ import numpy as np
 
 from robo_rollout.utils.image import resize_with_crop, resize_with_pad
 
-from roborollout_vla import droid
 from roborollout_vla.checkpoints import resolve_checkpoint
-from roborollout_vla.chunking import ChunkedPolicy
+from roborollout_vla.policies.chunking import ChunkedPolicy
+from roborollout_vla.robots import droid
 from roborollout_vla.server import make_parser, serve, warmup
 
 

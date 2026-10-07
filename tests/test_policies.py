@@ -12,10 +12,10 @@ import pytest
 
 from robo_rollout.policy.policy_client import PolicyClient
 
-from roborollout_vla import droid
-from roborollout_vla.molmobot import MolmoBotPolicy
-from roborollout_vla.molmobot_pi0 import MolmoBotPi0Policy
-from roborollout_vla.openpi import JOINT_POSITION, JOINT_VELOCITY, OpenPIPolicy
+from roborollout_vla.policies.molmobot import MolmoBotPolicy
+from roborollout_vla.policies.molmobot_pi0 import MolmoBotPi0Policy
+from roborollout_vla.policies.openpi import JOINT_POSITION, JOINT_VELOCITY, OpenPIPolicy
+from roborollout_vla.robots import droid
 from roborollout_vla.server import serve
 
 

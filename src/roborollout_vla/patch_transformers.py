@@ -4,11 +4,14 @@ This modifies the installed transformers package, so rerun it whenever transform
 Equivalent to the `cp -r` command in openpi's README, which assumes a source checkout of openpi.
 """
 
+import argparse
 from pathlib import Path
 import shutil
 
 
 def main():
+    argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter).parse_args()
+
     import openpi.models_pytorch.transformers_replace
     import transformers
 

@@ -12,7 +12,7 @@ The following policies are supported, each with its own extra:
 | `molmobot-pi0` | [MolmoBot-Pi0](https://github.com/allenai/MolmoBot/tree/main/MolmoBot-Pi0) (e.g. `allenai/MolmoBot-Pi0-DROID`) | `serve-molmobot-pi0` |
 | `lerobot` | Any [LeRobot](https://github.com/huggingface/lerobot) policy (ACT, Diffusion, pi0, pi0.5, SmolVLA, GR00T, X-VLA, MolmoAct2, ...) | `serve-lerobot` |
 
-All servers currently follow the observation and action conventions of RoboRollout's DROID robot (see [`droid.py`](src/roborollout_vla/droid.py)).
+All servers currently follow the observation and action conventions of RoboRollout's DROID robot (see [`droid.py`](src/roborollout_vla/robots/droid.py)).
 
 ## Installation
 
@@ -86,8 +86,8 @@ Policies whose processors convert relative actions back to absolute ones, and `j
 ## Adding a policy
 
 1. Add an extra with the policy's package to [`pyproject.toml`](pyproject.toml), and add it to the `conflicts` list in `[tool.uv]` if it can't be installed alongside the others.
-2. Add a module under [`src/roborollout_vla`](src/roborollout_vla) with:
-    - An `InferencePolicy` subclass that converts RoboRollout observations to the policy's inputs, and the policy's outputs to RoboRollout actions. Policies that predict action chunks can subclass [`ChunkedPolicy`](src/roborollout_vla/chunking.py).
+2. Add a module under [`src/roborollout_vla/policies`](src/roborollout_vla/policies) with:
+    - An `InferencePolicy` subclass that converts RoboRollout observations to the policy's inputs, and the policy's outputs to RoboRollout actions. Policies that predict action chunks can subclass [`ChunkedPolicy`](src/roborollout_vla/policies/chunking.py).
     - A `main()` that parses arguments with `make_parser()`, loads the policy, and calls `warmup()` and `serve()` from [`server.py`](src/roborollout_vla/server.py). Import the policy's package inside `main()`, so the wrapper can be tested without it.
 3. Register `main()` as a script in `[project.scripts]`.
 

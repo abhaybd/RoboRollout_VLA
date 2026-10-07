@@ -12,8 +12,8 @@ import torch
 
 from robo_rollout.utils.image import resize_with_pad
 
-from roborollout_vla import droid
-from roborollout_vla.chunking import ChunkedPolicy
+from roborollout_vla.policies.chunking import ChunkedPolicy
+from roborollout_vla.robots import droid
 from roborollout_vla.server import make_parser, serve, warmup
 
 logger = logging.getLogger(__name__)

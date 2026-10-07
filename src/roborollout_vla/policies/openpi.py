@@ -8,8 +8,8 @@ from typing import Any, Dict
 
 import numpy as np
 
-from roborollout_vla import droid
-from roborollout_vla.chunking import ChunkedPolicy
+from roborollout_vla.policies.chunking import ChunkedPolicy
+from roborollout_vla.robots import droid
 from roborollout_vla.server import make_parser, serve, warmup
 
 JOINT_VELOCITY = "joint_velocity"
