@@ -7,7 +7,43 @@ authors = [
     { name = "Abhay D", email = "a.deshpande012@gmail.com" }
 ]
 requires-python = ">=3.11"
-dependencies = []
+dependencies = [
+    "numpy",
+    "robo-rollout @ git+https://github.com/abhaybd/RoboRollout.git@cleanup",
+]
+
+# Each extra pulls in one policy implementation. They have incompatible pins (jax, numpy, transformers, openpi),
+# so install only one per environment.
+[project.optional-dependencies]
+openpi = [
+    "openpi @ git+https://github.com/Physical-Intelligence/openpi.git@215abfb217dbac7d5f1273282331b9b1866c0479",
+]
+molmobot = [
+    "molmobot[eval] @ git+https://github.com/allenai/MolmoBot.git@33c0ca77bf6062a23d60ffd4a6859334c4a46d30#subdirectory=MolmoBot",
+]
+molmobot-pi0 = [
+    "molmobot-pi0 @ git+https://github.com/allenai/MolmoBot.git@33c0ca77bf6062a23d60ffd4a6859334c4a46d30#subdirectory=MolmoBot-Pi0",
+]
+
+[project.scripts]
+serve-openpi = "roborollout_vla.openpi:main"
+serve-molmobot = "roborollout_vla.molmobot:main"
+serve-molmobot-pi0 = "roborollout_vla.molmobot_pi0:main"
+patch-transformers-for-openpi = "roborollout_vla.patch_transformers:main"
+
+[dependency-groups]
+dev = [
+    "pytest",
+]
+
+[tool.uv]
+conflicts = [
+    [
+        { extra = "openpi" },
+        { extra = "molmobot" },
+        { extra = "molmobot-pi0" },
+    ],
+]
 
 [build-system]
 requires = ["uv_build>=0.12.22,<0.13.0"]
