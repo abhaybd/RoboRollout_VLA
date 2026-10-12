@@ -1,5 +1,6 @@
 """
-Serve an openpi DROID policy (e.g. pi0_droid, pi0_fast_droid, pi05_droid) to RoboRollout's DROID robot.
+Serve an openpi DROID policy (e.g. pi0_droid, pi0_fast_droid, pi05_droid), which takes observations and returns
+actions in the format of RoboRollout's DROID robot.
 Requires the `openpi` extra.
 """
 

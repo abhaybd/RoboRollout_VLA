@@ -12,9 +12,9 @@ Actions:
     gripper: (1,) in [0, 1], where 0 is open and 1 is closed
 """
 
-from typing import Any, Dict, Iterable
-
 import numpy as np
+
+from roborollout_vla.robots.base import Arm, Robot
 
 # default policy camera names in RoboRollout's DROID config
 EXO_CAMERA = "exo_camera_1"
@@ -34,13 +34,5 @@ def joint_velocity_to_position(qpos: np.ndarray, velocity: np.ndarray, max_joint
     return np.asarray(qpos) + velocity * max_joint_delta
 
 
-def make_dummy_obs(cameras: Iterable[str], task: str = "pick up the object") -> Dict[str, Any]:
-    """Create an observation in the DROID format, e.g. for warming up a policy."""
-    return {
-        "task": task,
-        "qpos": {
-            "arm": np.zeros(7),
-            "gripper": np.zeros(1),
-        },
-        **{cam: np.zeros((360, 640, 3), dtype=np.uint8) for cam in cameras},
-    }
+ROBOT = Robot("droid", (Arm("arm", "gripper", 7),))
+make_dummy_obs = ROBOT.make_dummy_obs

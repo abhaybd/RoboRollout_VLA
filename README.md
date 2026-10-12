@@ -3,6 +3,8 @@
 Ready-made policy servers for running off-the-shelf VLAs with [RoboRollout](https://github.com/abhaybd/RoboRollout).
 Each server loads a policy, wraps it in RoboRollout's `InferencePolicy`, and serves it with RoboRollout's `WebsocketPolicyServer`. The robot-side rollout script then connects to it as usual.
 
+Servers aren't tied to robot hardware. A server only converts between the observations and actions RoboRollout sends and receives and the policy's inputs and outputs, so the robot just sets those formats. Robots are defined in [`src/roborollout_vla/robots`](src/roborollout_vla/robots): currently DROID and the bimanual YAM.
+
 The following policies are supported, each with its own extra:
 
 | Extra | Policies | Server command |
@@ -12,7 +14,7 @@ The following policies are supported, each with its own extra:
 | `molmobot-pi0` | [MolmoBot-Pi0](https://github.com/allenai/MolmoBot/tree/main/MolmoBot-Pi0) (e.g. `allenai/MolmoBot-Pi0-DROID`) | `serve-molmobot-pi0` |
 | `lerobot` | Any [LeRobot](https://github.com/huggingface/lerobot) policy (ACT, Diffusion, pi0, pi0.5, SmolVLA, GR00T, X-VLA, MolmoAct2, ...) | `serve-lerobot` |
 
-All servers currently follow the observation and action conventions of RoboRollout's DROID robot (see [`droid.py`](src/roborollout_vla/robots/droid.py)).
+The openpi and MolmoBot servers serve policies trained on DROID, so they expect the observations and actions of RoboRollout's DROID robot (see [`droid.py`](src/roborollout_vla/robots/droid.py)). `serve-lerobot` can serve to any of the robots, chosen with `--robot`.
 
 ## Installation
 
@@ -54,8 +56,12 @@ serve-molmobot --checkpoint allenai/MolmoBot-DROID
 # MolmoBot-Pi0
 serve-molmobot-pi0 --checkpoint allenai/MolmoBot-Pi0-DROID
 
-# LeRobot: any policy checkpoint, mapping RoboRollout's cameras to the policy's image features (see below)
-serve-lerobot --policy lerobot/MolmoAct2-DROID-LeRobot --camera exo_camera_1=exterior_1_left --camera wrist_camera=wrist_left
+# LeRobot: any policy checkpoint, mapping RoboRollout's cameras to the policy's image features (see below).
+# For example, MolmoAct2 on a DROID robot
+serve-lerobot --policy lerobot/MolmoAct2-DROID-LeRobot --robot droid --camera exo_camera_1=exterior_1_left --camera wrist_camera=wrist_left
+# and MolmoAct2 on a bimanual YAM, executing 25 actions of each 30-action chunk like MolmoAct2's own eval
+serve-lerobot --policy lilkm/MolmoAct2-BimanualYAM-LeRobot --robot yam --invert-gripper --n-action-steps 25 \
+    --camera top_camera=top --camera left_wrist_camera=left --camera right_wrist_camera=right
 ```
 
 Run any command with `--help` for all options. Common ones:
@@ -68,20 +74,28 @@ When a client connects, the server sends the model name and metadata, which Robo
 
 ### LeRobot policies
 
-`serve-lerobot` loads any checkpoint saved by LeRobot, along with its pre- and postprocessors, and runs it the way LeRobot's own rollout does. Since LeRobot policies are trained on arbitrary datasets, you need to tell the server how RoboRollout's observations and actions map onto the policy's:
+`serve-lerobot` loads any checkpoint saved by LeRobot, along with its pre- and postprocessors, and runs it the way LeRobot's own rollout does. Since LeRobot policies are trained on arbitrary datasets and robots, you need to tell the server how RoboRollout's observations and actions map onto the policy's:
 
 - Each image feature of the policy (`observation.images.<name>`) is read from the observation key `<name>`. Since these names come from the policy's training dataset, set the rollout config's `policy_cameras` to send each camera under the name the policy expects. For example, for `lerobot/MolmoAct2-DROID-LeRobot`:
     ```bash
     python scripts/droid/run_policy.py 'policy_cameras={exterior_1_left: exo_camera_1, wrist_left: wrist_camera}' ...
     ```
     Alternatively, keep the rollout config as is and map cameras on the server with `--camera OBS_KEY=FEATURE`, e.g. `--camera exo_camera_1=exterior_1_left --camera wrist_camera=wrist_left`. Either way, image features the robot doesn't send (or that `--camera` doesn't map) are skipped, which some policies (e.g. pi0/pi0.5) handle by masking the camera out. The server logs the policy's input features on startup.
-- `observation.state` is the 7 arm joint positions followed by the gripper position, zero-padded if the policy expects a larger state (e.g. pi0.5's padded 32-dim state).
-- The first 8 action dims are the arm and gripper, and the rest (e.g. padding) are ignored. `--action-space` sets what the arm actions are:
+- `--robot` (required) sets the robot. `observation.state` is the joint positions of each of its arms followed by that arm's gripper position, zero-padded if the policy expects a larger state (e.g. pi0.5's padded 32-dim state). For DROID that's 7 + 1 dims, and for the YAM it's 6 + 1 for the left arm and then 6 + 1 for the right arm.
+- The first action dims are laid out the same way, and the rest (e.g. padding) are ignored.
+- RoboRollout's grippers are 0 when open and 1 when closed. `--invert-gripper` flips this for policies trained the other way around, such as those trained on data recorded with i2rt's YAM driver (like MolmoAct2-BimanualYAM).
+- `--action-space` sets what the arm joint actions are:
     - `joint_position` (default): absolute joint positions, as in LeRobot's port of the DROID dataset.
-    - `joint_velocity`: DROID's joint velocities, i.e. joint deltas divided by DROID's 0.2 rad limit, as used by openpi's DROID policies (and their LeRobot ports).
+    - `joint_velocity`: joint deltas divided by DROID's 0.2 rad limit, as used by openpi's DROID policies (and their LeRobot ports).
     - `joint_chunk_delta`: offsets from the joint positions when the chunk was predicted.
 
+Images are resized (with padding) to the shape of the policy's image features, except for MolmoAct2, whose processor resizes images itself. MolmoAct2 gets images at the resolution they're sent at.
+
 Policies whose processors convert relative actions back to absolute ones, and `joint_chunk_delta` policies, predict whole chunks at once, so that every action of a chunk is relative to the state it was predicted from. Policies that take an environment state as input aren't supported.
+
+## Adding a robot
+
+Add a module under [`src/roborollout_vla/robots`](src/roborollout_vla/robots) that documents the robot's observations and actions in RoboRollout and defines a `ROBOT = Robot(name, arms)`, where each `Arm` gives the keys of an arm's joint and gripper positions in `qpos` (and in actions) and its number of joints. See [`yam.py`](src/roborollout_vla/robots/yam.py) for an example. Then add it to `ROBOTS` in [`robots/__init__.py`](src/roborollout_vla/robots/__init__.py), which makes it available to `serve-lerobot --robot`.
 
 ## Adding a policy
 

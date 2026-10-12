@@ -16,7 +16,7 @@ from roborollout_vla.policies.lerobot import (  # noqa: E402
     LeRobotPolicy,
     resolve_image_feature,
 )
-from roborollout_vla.robots import droid  # noqa: E402
+from roborollout_vla.robots import droid, yam  # noqa: E402
 
 EXO_FEATURE = "observation.images.exterior"
 WRIST_FEATURE = "observation.images.wrist"
@@ -79,7 +79,9 @@ def make_policy(fake=None, action_space=JOINT_POSITION, predict_chunks=False, ca
     fake = fake or FakeLeRobotPolicy()
     cameras = cameras or {droid.EXO_CAMERA: EXO_FEATURE, droid.WRIST_CAMERA: WRIST_FEATURE}
     pre, post = FakeProcessor(), FakeProcessor()
-    policy = LeRobotPolicy(fake, pre, post, cameras, action_space=action_space, predict_chunks=predict_chunks)
+    policy = LeRobotPolicy(
+        fake, pre, post, droid.ROBOT, cameras, action_space=action_space, predict_chunks=predict_chunks
+    )
     return policy, fake, pre, post
 
 
@@ -172,7 +174,67 @@ def test_missing_cameras_are_skipped_only_if_optional():
     fake = FakeLeRobotPolicy()
     pre = FakeProcessor()
     cameras = {droid.EXO_CAMERA: EXO_FEATURE, droid.WRIST_CAMERA: WRIST_FEATURE}
-    policy = LeRobotPolicy(fake, pre, FakeProcessor(), cameras, optional_cameras=True)
+    policy = LeRobotPolicy(fake, pre, FakeProcessor(), droid.ROBOT, cameras, optional_cameras=True)
     policy.get_action(obs)
     assert EXO_FEATURE in pre.inputs[0]
     assert WRIST_FEATURE not in pre.inputs[0]
+
+
+def test_images_are_not_resized_if_disabled():
+    fake = FakeLeRobotPolicy()
+    pre = FakeProcessor()
+    cameras = {droid.EXO_CAMERA: EXO_FEATURE, droid.WRIST_CAMERA: WRIST_FEATURE}
+    policy = LeRobotPolicy(fake, pre, FakeProcessor(), droid.ROBOT, cameras, resize_images=False)
+    policy.get_action(make_obs())
+    assert pre.inputs[0][EXO_FEATURE].shape == (1, 3, 360, 640)
+
+
+def make_yam_obs():
+    obs = yam.make_dummy_obs([yam.TOP_CAMERA], task="fold the towel")
+    obs["qpos"]["left_arm"] = np.arange(6, dtype=float)
+    obs["qpos"]["left_gripper"] = np.array([0.25])
+    obs["qpos"]["right_arm"] = np.arange(10, 16, dtype=float)
+    obs["qpos"]["right_gripper"] = np.array([1.0])
+    return obs
+
+
+def make_yam_policy(fake, **kwargs):
+    pre = FakeProcessor()
+    post = FakeProcessor(lambda actions: actions + torch.arange(actions.shape[-1]) / 100)
+    return LeRobotPolicy(fake, pre, post, yam.ROBOT, {yam.TOP_CAMERA: EXO_FEATURE}, **kwargs), pre
+
+
+@pytest.mark.parametrize("invert_gripper", [False, True])
+def test_yam_state_and_actions(invert_gripper):
+    policy, pre = make_yam_policy(FakeLeRobotPolicy(state_dim=14, action_dim=16), invert_gripper=invert_gripper)
+    action = policy.get_action(make_yam_obs())
+
+    left_gripper, right_gripper = (0.75, 0.0) if invert_gripper else (0.25, 1.0)
+    expected_state = [*range(6), left_gripper, *range(10, 16), right_gripper]
+    np.testing.assert_allclose(pre.inputs[0]["observation.state"][0].numpy(), expected_state)
+
+    # actions are [left arm, left gripper, right arm, right gripper], plus 2 padding dims that are ignored
+    assert set(action) == {"left_arm", "left_gripper", "right_arm", "right_gripper"}
+    np.testing.assert_allclose(action["left_arm"], np.arange(6) / 100)
+    np.testing.assert_allclose(action["right_arm"], np.arange(7, 13) / 100)
+    expected_grippers = (1 - 0.06, 1 - 0.13) if invert_gripper else (0.06, 0.13)
+    np.testing.assert_allclose(action["left_gripper"], [expected_grippers[0]])
+    np.testing.assert_allclose(action["right_gripper"], [expected_grippers[1]])
+
+
+def test_yam_joint_chunk_delta():
+    policy, _ = make_yam_policy(
+        FakeLeRobotPolicy(state_dim=14, action_dim=14), action_space=JOINT_CHUNK_DELTA, predict_chunks=True
+    )
+    action = policy.get_action(make_yam_obs())
+    np.testing.assert_allclose(action["left_arm"], np.arange(6) + np.arange(6) / 100)
+    np.testing.assert_allclose(action["right_arm"], np.arange(10, 16) + np.arange(7, 13) / 100)
+    # grippers are absolute
+    np.testing.assert_allclose(action["left_gripper"], [0.06])
+
+
+def test_yam_rejects_incompatible_policies():
+    with pytest.raises(ValueError, match="14 dims"):
+        make_yam_policy(FakeLeRobotPolicy(state_dim=8, action_dim=14))
+    with pytest.raises(ValueError, match="14 dims"):
+        make_yam_policy(FakeLeRobotPolicy(state_dim=14, action_dim=8))

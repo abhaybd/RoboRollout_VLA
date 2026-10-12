@@ -1,5 +1,6 @@
 """
-Serve a MolmoBot-Pi0 policy (e.g. allenai/MolmoBot-Pi0-DROID) to RoboRollout's DROID robot.
+Serve a MolmoBot-Pi0 policy (e.g. allenai/MolmoBot-Pi0-DROID), which takes observations and returns actions in the
+format of RoboRollout's DROID robot.
 Requires the `molmobot-pi0` extra.
 
 This replicates molmobot_pi0.eval.policies.pi rather than wrapping it, since that module depends on MolmoSpaces,

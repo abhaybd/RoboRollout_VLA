@@ -1,5 +1,6 @@
 """
-Serve a MolmoBot policy (e.g. allenai/MolmoBot-DROID) to RoboRollout's DROID robot.
+Serve a MolmoBot policy (e.g. allenai/MolmoBot-DROID), which takes observations and returns actions in the format
+of RoboRollout's DROID robot.
 Requires the `molmobot` extra.
 """
 
