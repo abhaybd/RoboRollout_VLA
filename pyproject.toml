@@ -20,9 +20,13 @@ openpi = [
 ]
 molmobot = [
     "molmobot[eval] @ git+https://github.com/allenai/MolmoBot.git@33c0ca77bf6062a23d60ffd4a6859334c4a46d30#subdirectory=MolmoBot",
+    # listed directly so tool.uv.sources can point them at the CUDA 12.8 index (see below)
+    "torch",
+    "torchvision",
 ]
 molmobot-pi0 = [
     "molmobot-pi0 @ git+https://github.com/allenai/MolmoBot.git@33c0ca77bf6062a23d60ffd4a6859334c4a46d30#subdirectory=MolmoBot-Pi0",
+    "torch",
 ]
 # lerobot with the dependencies of all of its policies. lerobot requires python 3.12+, unlike the MolmoBot extras.
 lerobot = [
@@ -52,6 +56,22 @@ conflicts = [
         { extra = "lerobot" },
     ],
 ]
+
+# MolmoBot pins torch 2.7, whose default PyPI build is CUDA 12.6 and doesn't support Blackwell GPUs.
+# Pull the CUDA 12.8 build instead, which supports Blackwell as well as older GPUs.
+[tool.uv.sources]
+torch = [
+    { index = "pytorch-cu128", extra = "molmobot", marker = "sys_platform == 'linux'" },
+    { index = "pytorch-cu128", extra = "molmobot-pi0", marker = "sys_platform == 'linux'" },
+]
+torchvision = [
+    { index = "pytorch-cu128", extra = "molmobot", marker = "sys_platform == 'linux'" },
+]
+
+[[tool.uv.index]]
+name = "pytorch-cu128"
+url = "https://download.pytorch.org/whl/cu128"
+explicit = true
 
 [build-system]
 requires = ["uv_build>=0.12.22,<0.13.0"]
